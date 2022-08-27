@@ -282,6 +282,23 @@ class BezierSpline():
         """
         return len(self._curves) == 0
 
+    def enforce_closed_curve(self, epsilon: float = 0.0):
+        new_curves = []
+        start_point = None  # start of the current path
+        prev_point = None
+        for curve in self._curves:
+            if prev_point is not None and (curve.evaluate(0) - prev_point).length() > epsilon:
+                if start_point is not None and (prev_point - start_point).length() > epsilon:
+                    new_curves.append(BezierCurve((prev_point, start_point)))
+                start_point = None
+            if start_point is None:
+                start_point = curve.evaluate(0)
+            prev_point = curve.evaluate(1)
+            new_curves.append(curve)
+        if start_point is not None and (prev_point - start_point).length() > epsilon:
+            new_curves.append(BezierCurve((prev_point, start_point)))
+        self._curves = new_curves
+
     def _to_expression(self, decimals: int, factor: bool) -> str:
         pieces = []
         for curve in self._curves:

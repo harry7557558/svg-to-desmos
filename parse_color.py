@@ -52,7 +52,10 @@ def parse_color(col: str) -> str:
         return reduce_color(col)
     if col in CSS_COLORS:
         return reduce_color(CSS_COLORS[col])
-    mode, comps = parse_function(col)
+    try:
+        mode, comps = parse_function(col)
+    except ValueError:
+        return "#000"
     if mode in ["rgb", "rgba"]:
         comps = list(map(int, comps[:3]))
         for i in range(3):

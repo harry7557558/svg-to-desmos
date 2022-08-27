@@ -81,6 +81,7 @@ def parse_css_transform(transform: str) -> Mat2x3:
             continue
         if funname == "scale" and len(params) == 2:
             matrix *= Mat2x3([[params[0], 0, 0], [0, params[1], 0]])
+            continue
         # not implemented
         raise ValueError("Transform attribute parsing error", ts)
     return matrix

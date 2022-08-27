@@ -8,9 +8,9 @@ Indirectly based on a school project from a grade 12 CS class.
 
 ### How it works
 
- - Get all figures (`path`, `ellipse`, `rect`) with a `fill` attribute from an SVG (partially support `defs` and `transform`)
+ - Get all figures with `fill` from an SVG (partially supports `defs` and `transform`)
  - Apply arc-length parameterization to convert paths to discrete points
- - Scale the points appropriately (this controls image quality)
+ - Scale the points appropriately (larger => higher quality)
  - Apply Fast Fourier Transform to fit the points using trigonometric basis functions
  - Round the amplitudes to the nearest integers and discard basis functions with a zero amplitude
  - Convert trigometric series to LaTeX expressions compactable with Desmos

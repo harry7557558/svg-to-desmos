@@ -27,15 +27,14 @@ def parse_path(s: str) -> BezierSpline:
     s = s.strip()
     if len(s) == 0:
         return BezierSpline()
-    if s[-1] not in 'Zz':
-        s += 'z'
 
     cmd = ''  # MZLHVCSQTA
     p_start = Vector2(0, 0)  # starting point
     p0 = Vector2(0, 0)  # ending point
-    s_prev, t_prev = Vector2(0, 0), Vector2(
-        0, 0)  # reflection in smoothed curves
+    s_prev = Vector2(0, 0)
+    t_prev = Vector2(0, 0)  # reflection in smoothed curves
     spline = BezierSpline()  # result
+    cont_count = 0  # number of points after a letter
 
     d = 0  # index
     while d < len(s):
@@ -84,8 +83,10 @@ def parse_path(s: str) -> BezierSpline:
         if s[d].upper() in "MZLHVCSQT":
             cmd = s[d]
             d += 1
+            cont_count = 0
         elif not is_float(s[d]):
-            return None
+            print("SVG path parsing error: float")
+            break
 
         # case work for each command
 
@@ -94,6 +95,8 @@ def parse_path(s: str) -> BezierSpline:
             if cmd.islower():
                 p += p0
             p_start = p
+            if cont_count > 0:
+                spline.add_curve(BezierCurve((p0, p_start)))
             p0 = p
 
         elif cmd in "Zz":  # close
@@ -168,13 +171,16 @@ def parse_path(s: str) -> BezierSpline:
             p0 = p2
 
         else:  # elliptic arc ?!
-            return None
+            raise ValueError("SVG path parsing error: elliptic arc")
+
+        cont_count += 1
 
         if cmd not in "CcSs":
             s_prev = p0
         if cmd not in "QqTt":
             t_prev = p0
 
+    spline.enforce_closed_curve(1e-6)
     return spline
 
 
@@ -254,8 +260,25 @@ def load_svg_shapes(filename: str):
 
         if nodeName == "path":
             spline = parse_path(attributes['d'])
-            if spline == None:
+            if spline is None:
                 raise ValueError("SVG path parsing error.")
+            shape = spline
+
+        elif nodeName in ["polygon", "polyline"]:
+            if 'points' not in attributes:
+                return []
+            spline = parse_path('M'+attributes['points'])
+            if spline is None:
+                raise ValueError("SVG path parsing error.")
+            shape = spline
+
+        elif nodeName == "rect":
+            x = float(attributes['x'])
+            y = float(attributes['y'])
+            w = float(attributes['width'])
+            h = float(attributes['height'])
+            spline = parse_path(f"M{x},{y}h{w}v{h}h{-w}z")
+            assert len(spline) == 4
             shape = spline
 
         elif nodeName == "ellipse":
@@ -267,15 +290,6 @@ def load_svg_shapes(filename: str):
             ellipse = Ellipse(attributes['cx'], attributes['cy'],
                               attributes['r'], attributes['r'])
             shape = ellipse
-
-        elif nodeName == "rect":
-            x = float(attributes['x'])
-            y = float(attributes['y'])
-            w = float(attributes['width'])
-            h = float(attributes['height'])
-            spline = parse_path(f"M{x},{y}h{w}v{h}h{-w}z")
-            assert len(spline) == 4
-            shape = spline
 
         else:
             if nodeName not in unsupported_node_names:
@@ -369,6 +383,8 @@ if __name__ == "__main__":
     # filename, width = "test-svg/World_map_blank_without_borders.svg", 1200
     # filename, width = "test-svg/equation-2.svg", 8000
     # filename, width = "test-svg/equation-3.svg", 6000
-    filename, width = "test-svg/hermit_crab.svg", 2000
+    # filename, width = "test-svg/hermit_crab.svg", 2000
     # filename, width = "test-svg/chinese_paper_cutting.svg", 4000
+    filename, width = "test-svg/Python3-powered_hello-world.svg", 2000
+    # filename, width = "test-svg/Frog_(2546)_-_The_Noun_Project.svg", 2000
     one_svg_to_desmos_merge(filename, width)

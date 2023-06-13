@@ -11,7 +11,7 @@ import time
 from copy import deepcopy
 
 
-def load_svg_to_trig_splines(filename: str, width: float = None) -> list[dict]:
+def load_svg_to_trig_splines(filename: str, width: float = None) -> "list[dict]":
     """Load an SVG file to a list of shapes in order
        Each loaded shape contains max/min, fill, trigSplines, desmos"""
     time0 = time.perf_counter()
@@ -132,7 +132,7 @@ def load_svg_to_trig_splines(filename: str, width: float = None) -> list[dict]:
     return shapes
 
 
-def generate_layering_table(shapes: list[dict]) -> list[tuple[set, set]]:
+def generate_layering_table(shapes: "list[dict]") -> "list[tuple[set, set]]":
     """Generate a table representing the layering relationship of shapes
     Arg:
         @shapes: a list of shapes returned from `load_svg_to_trig_splines()`
@@ -258,7 +258,7 @@ def generate_layering_table(shapes: list[dict]) -> list[tuple[set, set]]:
     return result
 
 
-def join_shapes(shapes: list[dict]) -> list[dict]:
+def join_shapes(shapes: "list[dict]") -> "list[dict]":
     """Join a list of shapes with the same color"""
     results = []
     latex_length = 0
@@ -287,9 +287,9 @@ def join_shapes(shapes: list[dict]) -> list[dict]:
     return results
 
 
-def collect_shapes_greedy(shapes: list[dict],
+def collect_shapes_greedy(shapes: "list[dict]",
                           layering_table=None,
-                          effective_shapes=None) -> list[dict]:
+                          effective_shapes=None) -> "list[dict]":
     """Merge shapes using greedy algorithm, pull out the most occuring color
        Average case O(NlogN), worst case O(N²logN) ??
     """
@@ -366,7 +366,7 @@ def collect_shapes_greedy(shapes: list[dict],
     return lcollect + joined + ucollect
 
 
-def split_large_shapes(shapes: list[dict]) -> list[dict]:
+def split_large_shapes(shapes: "list[dict]") -> "list[dict]":
     """Prevent "Definitions are nested too deeply" error"""
     new_shapes = []
     for shape in shapes:
@@ -390,10 +390,10 @@ def split_large_shapes(shapes: list[dict]) -> list[dict]:
     return new_shapes
 
 
-def get_latex_translation(latex: str) -> tuple[tuple[str, str], str]:
+def get_latex_translation(latex: str) -> "tuple[tuple[str, str], str]":
     """Get the translation of the LaTeX expression of an (x,y) trigonometric series,
         as well as the expression with translation removed"""
-    def rip_latex(latex, i0) -> tuple[str, str]:
+    def rip_latex(latex, i0) -> "tuple[str, str]":
         val = ""
         i = i0
         if latex[i] in ['+', '-']:
@@ -414,7 +414,7 @@ def get_latex_translation(latex: str) -> tuple[tuple[str, str], str]:
     return (dx, dy, latex)
 
 
-def extract_common_latex(shapes: list[dict]) -> list[dict]:
+def extract_common_latex(shapes: "list[dict]") -> "list[dict]":
     """Extract LaTeX expressions that are translations and define them in an expression
     Args:
         shapes: a list of shapes, usually returned by `collect_shapes_greedy()`

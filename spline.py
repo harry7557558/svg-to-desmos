@@ -23,7 +23,7 @@ class Ellipse():
         return Vector2(self.cx + self.rx*math.cos(a),
                        self.cy + self.ry*math.sin(a))
 
-    def evaluate_n(self, n: int) -> list[Vector2]:
+    def evaluate_n(self, n: int) -> "list[Vector2]":
         """Evaluate the curve at n points with evenly-spaced parameter values"""
         return [self.evaluate(i/n) for i in range(n)]
 
@@ -52,7 +52,7 @@ class Ellipse():
 class BezierCurve():
     """Cubic Bézier curve"""
 
-    def __init__(self, control_points: tuple[Vector2]) -> None:
+    def __init__(self, control_points: "tuple[Vector2]") -> None:
         """Construct a cubic Bézier curve from a list of control points
         Additional info:
             Supports no more than 3 control points.
@@ -105,7 +105,7 @@ class BezierCurve():
         w3 = t*t
         return (self._p0*w0 + self._p1*w1 + self._p2*w2 + self._p3*w3) * 3.0
 
-    def evaluate_n(self, n: int) -> list[Vector2]:
+    def evaluate_n(self, n: int) -> "list[Vector2]":
         """Evaluate the curve at n points with evenly-spaced parameter values"""
         return [self.evaluate(i/n) for i in range(n)]
 
@@ -198,12 +198,12 @@ class BezierSpline():
         ti = math.floor(it)
         return self._curves[ti].evaluate(it-ti)
 
-    def evaluate_n(self, n: int, alp: bool = True) -> list[Vector2]:
+    def evaluate_n(self, n: int, alp: bool = True) -> "list[Vector2]":
         if alp:
             return self.evaluate_n_alp(n, False)
         return [self.evaluate(i/n) for i in range(n)]
 
-    def evaluate_n_alp(self, n: int, verbose: bool = True) -> list[Vector2]:
+    def evaluate_n_alp(self, n: int, verbose: bool = True) -> "list[Vector2]":
         """Evaluate the curve at n points, attempt to achieve even arc length
             for each arc between two points.
         Additional info:
@@ -370,7 +370,7 @@ class BezierSpline():
         return x2
 
 
-def clean_spline(spline: BezierSpline, epsilon: float = 1e-8) -> list[BezierSpline]:
+def clean_spline(spline: BezierSpline, epsilon: float = 1e-8) -> "list[BezierSpline]":
     """Split the spline into a list of continuous splines of non-degenerate points
     Args:
         spline: the Bézier spline to clean

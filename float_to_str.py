@@ -28,7 +28,7 @@ def float_to_str(x: float, decimals: int) -> str:
     return s
 
 
-def join_terms(terms: list[str]) -> str:
+def join_terms(terms: "list[str]") -> str:
     """Join term returned by float_to_str"""
     def is_zero(s: str):
         return s.lstrip('+') in ['0', '(0,0)']
@@ -49,7 +49,7 @@ def join_terms(terms: list[str]) -> str:
     return s.lstrip('+')
 
 
-def join_curves(curves: list[dict]) -> dict:
+def join_curves(curves: "list[dict]") -> dict:
     """Join multiple parametric curves as a single parametric curve
        Assumes periodic parameter value (it won't change the equation)
     Args:

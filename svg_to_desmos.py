@@ -195,6 +195,7 @@ def load_svg_shapes(filename: str):
         raise ValueError("No SVG tag detected.")
 
     unsupported_node_names = set({})
+    global_styles = {}
 
     def parse_node(node, existing_attributes={}, defs={}):
         nodeName = node.nodeName
@@ -211,11 +212,22 @@ def load_svg_shapes(filename: str):
         if 'transform' in attributes:
             transform *= parse_css_transform(attributes['transform'])
 
+        styles = []
         if 'style' in attributes:
-            styles = [s.strip() for s in attributes['style'].split(';')]
-            for style in styles:
-                if re.match(r"^fill\s*\:", style):
-                    attributes['fill'] = style[style.find(':')+1:]
+            styles += [s.strip() for s in attributes['style'].split(';')]
+        if 'class' in attributes:
+            classes = ['.'+c.strip() for c in attributes['class'].split()]
+            for c in classes:
+                if c in global_styles:
+                    styles += global_styles[c]
+        if 'id' in attributes:
+            ids = ['#'+c.strip() for c in attributes['id'].split()]
+            for c in ids:
+                if c in global_styles:
+                    styles += global_styles[c]
+        for style in styles:
+            if re.match(r"^fill\s*\:", style):
+                attributes['fill'] = style[style.find(':')+1:]
         if 'fill' not in attributes or attributes['fill'] in ["currentColor"]:
             attributes['fill'] = '#000'
         attributes['fill'] = parse_color(attributes['fill'])
@@ -223,6 +235,20 @@ def load_svg_shapes(filename: str):
             return []
 
         if nodeName in ["#text"]:
+            return []
+
+        if nodeName == "style":
+            text = node.firstChild.nodeValue
+            ss = [e.strip() for e in text.split('}')]
+            ss = [e.split('{')[:2] for e in ss if '{' in e]
+            for matcher, style in ss:
+                items = [s.strip() for s in style.split(';')]
+                items = [s for s in items if ':' in s]
+                matcher = [m.strip() for m in matcher.split(',')]
+                for m in matcher:
+                    if m not in global_styles:
+                        global_styles[m] = []
+                    global_styles[m] += items
             return []
 
         if nodeName in ["g", "switch"]:
@@ -315,7 +341,7 @@ def load_svg_shapes(filename: str):
     return (shapes, errors)
 
 
-def shapes_to_desmos(shapes: list[dict], expressions_app: list[dict] = []) -> dict:
+def shapes_to_desmos(shapes: "list[dict]", expressions_app: "list[dict]" = []) -> dict:
     """Fit a list of shapes to Desmos using FFT compression
        @shapes: returned from `merge_shapes.collect_shapes_greedy()`
        @expressions_app: append to the list of expressions

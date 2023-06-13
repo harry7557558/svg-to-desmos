@@ -1,7 +1,7 @@
 import re
 
 
-def parse_function(s: str) -> tuple[str, list[float]]:
+def parse_function(s: str) -> "tuple[str, list[float]]":
     s = re.sub(r"[\s\;\,]+$", "", s)
     bi = s.find('(')
     if bi == -1 or not s.endswith(')'):

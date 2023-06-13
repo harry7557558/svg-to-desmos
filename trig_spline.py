@@ -9,7 +9,7 @@ from float_to_str import float_to_str, join_terms
 class TrigSpline:
     """Parametric curve defined by trigonometric series"""
 
-    def __init__(self, control_points: list[Vector2]):
+    def __init__(self, control_points: "list[Vector2]"):
         """Calculate the coefficients of the spline based on a list of control points
         Additional info:
             Calculated using the Fast Fourier Transform (FFT) algorithm via NumPy.
@@ -40,7 +40,7 @@ class TrigSpline:
         y_sin = self._y_sin * np.sin(2.0*math.pi*np.arange(len(self._y_sin))*t)
         return Vector2(sum(x_cos)+sum(x_sin), sum(y_cos)+sum(y_sin))
 
-    def evaluate_n(self, n: int, raw: bool = False) -> list[Vector2]:
+    def evaluate_n(self, n: int, raw: bool = False) -> "list[Vector2]":
         """Evaluate the curve at n points with evenly-spaced parameter values
         When raw is True, returns (x, y); When raw is False, returns list[Vector2]"""
         if n < max(len(self._x_cos), len(self._x_sin), len(self._y_cos), len(self._y_sin)):
@@ -166,7 +166,7 @@ class TrigSpline:
         return result
 
     @staticmethod
-    def _filter_lowest_dim(a_cos: list[float], a_sin: list[float], n_waves: int) -> tuple[list[float], list[float]]:
+    def _filter_lowest_dim(a_cos: "list[float]", a_sin: "list[float]", n_waves: int) -> "tuple[list[float], list[float]]":
         """Filter frequencies in one dimension, keep lowest frequencies
         Args:
             a_cos: the amplitudes of cosine waves of frequencies
@@ -186,7 +186,7 @@ class TrigSpline:
         return (np.array(r_cos), np.array(r_sin))
 
     @staticmethod
-    def _filter_greatest_dim(a_cos: list[float], a_sin: list[float], n_waves: int) -> tuple[list[float], list[float]]:
+    def _filter_greatest_dim(a_cos: "list[float]", a_sin: "list[float]", n_waves: int) -> "tuple[list[float], list[float]]":
         """Filter frequencies in one dimension, keep greatest amplitudes
         Args:
             a_cos: the amplitudes of cosine waves of frequencies
@@ -246,7 +246,7 @@ class TrigSpline:
         return scale+'('+latex_x+','+latex_y+')'
 
     @staticmethod
-    def _to_latex_dim(a_cos: list[float], a_sin: list[float], scale: float) -> tuple[str, bool]:
+    def _to_latex_dim(a_cos: "list[float]", a_sin: "list[float]", scale: float) -> "tuple[str, bool]":
         """Get the LaTeX of the curve to be exported to Desmos, in one dimension
            Returns: (LaTeX, is_degenerate)
         """

@@ -8,7 +8,7 @@ from parse_color import parse_function
 class Mat2x3:
     """2D transformation matrix"""
 
-    def __init__(self, mat: list[list[float]]):
+    def __init__(self, mat: "list[list[float]]"):
         self.mat = [
             [float(mat[0][0]), float(mat[0][1]), float(mat[0][2])],
             [float(mat[1][0]), float(mat[1][1]), float(mat[1][2])]

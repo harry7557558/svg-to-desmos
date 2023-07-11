@@ -13,6 +13,86 @@ import re
 import json
 
 
+def get_elliptic_arc_info(
+        p0: Vector2, p1: Vector2, rx, ry, theta, laf, sf):
+    """SVG elliptic arc??
+        Returns:
+            Mat2x3
+            t_start
+            t_end
+    """
+    dx, dy = p1.x - p0.x, p1.y - p0.y
+    R = np.array([
+        [rx*math.cos(theta), -ry*math.sin(theta)],
+        [rx*math.sin(theta), ry*math.cos(theta)]
+    ])
+    invR = np.linalg.inv(R)
+    dcos = invR[0][0] * dx + invR[0][1] * dy
+    dsin = invR[1][0] * dx + invR[1][1] * dy
+    sc = (2.0-1e-12) / math.hypot(dcos, dsin)
+    if sc < 1.0:
+        rx, ry = rx / sc, ry / sc
+        R, invR = R / sc, invR * sc
+        dcos, dsin = dcos * sc, dsin * sc
+    avr_t = math.atan2(-dcos, dsin)
+    amp_t = math.asin(0.5*math.hypot(dcos, dsin))
+    if math.cos(avr_t) * math.sin(amp_t) * dsin < 0.0:
+        amp_t = -amp_t
+    t0, t1 = avr_t-amp_t, avr_t+amp_t
+    if ((abs(t1-t0)>math.pi) != (laf != 0)) or ((t1>t0) != (sf!=0)):
+        t0, t1 = avr_t-amp_t+2.0*math.pi, avr_t+amp_t
+    if ((abs(t1-t0)>math.pi) != (laf != 0)) or ((t1>t0) != (sf!=0)):
+        t0, t1 = avr_t-(math.pi-amp_t), avr_t+(math.pi-amp_t)
+    if ((abs(t1-t0)>math.pi) != (laf != 0)) or ((t1>t0) != (sf!=0)):
+        t0, t1 = avr_t-(math.pi-amp_t)+2.0*math.pi, avr_t+(math.pi-amp_t)
+    cx = p0.x - (R[0][0]*math.cos(t0)+R[0][1]*math.sin(t0))
+    cy = p0.y - (R[1][0]*math.cos(t0)+R[1][1]*math.sin(t0))
+    return (
+        Mat2x3([[R[0][0], R[0][1], cx], [R[1][0], R[1][1], cy]]),
+        t0, t1
+    )
+
+
+def circular_arc_to_spline(a):
+    """Least squares unit circle 0<theta<a for small a"""
+    S, C = math.sin(a), math.cos(a)
+    s2, c2 = S*S, C*C
+    sc2 = s2+c2
+    sc22 = sc2*sc2
+    a = 1 / (756*(sc22+1)+810*s2-1890*(sc2+1)*C+2430*c2)
+    c = (2520*sc22+2736*s2+(-507*sc2-6600*C+7215)*C-2628) * a
+    b = (3996*(sc2+1)-6750*C)*S * a
+    d = (3439*sc2+4276*C-7715)*S * a
+    p = (c-b*b/3)/3
+    q = -0.5*((b*b/13.5-c/3)*b+d)
+    a = q*q + p*p*p
+    if a > 0.0:
+        x = (q+a**0.5)**(1/3) + (q-a**0.5)**(1/3) - b/3
+    else:
+        x = 2*(q*q-a)**(1/6) * math.cos(math.atan2((-a)**0.5,q)/3) - b/3
+    return (
+        Vector2(1, 0),
+        Vector2(1, x),
+        Vector2(C+x*S, S-x*C),
+        Vector2(C, S)
+    )
+
+
+def elliptic_arc_to_spline(R: Mat2x3, t0, t1):
+    dt = t1 - t0
+    n = 1 if abs(dt)<0.5 else int((abs(dt)-0.5)/(0.5*math.pi)) + 1
+    c = circular_arc_to_spline(dt/n)
+    res = []
+    for i in range(n):
+        a = t0 + dt * (i/n)
+        ca, sa = math.cos(a), math.sin(a)
+        T = lambda p: R*Vector2(ca*p.x-sa*p.y, sa*p.x+ca*p.y)
+        res.append(BezierCurve((
+            T(c[0]), T(c[1]), T(c[2]), T(c[3])
+        )))
+    return res
+
+
 def parse_path(s: str) -> BezierSpline:
     """Parse an SVG path
     Additional info:
@@ -80,12 +160,12 @@ def parse_path(s: str) -> BezierSpline:
         # get command
         while d < len(s) and re.match(r"^[\s\,]$", s[d]):
             d += 1
-        if s[d].upper() in "MZLHVCSQT":
+        if s[d].upper() in "MZLHVCSQTA":
             cmd = s[d]
             d += 1
             cont_count = 0
         elif not is_float(s[d]):
-            print("SVG path parsing error: float")
+            print("SVG path parsing error: float", s[d])
             break
 
         # case work for each command
@@ -170,8 +250,22 @@ def parse_path(s: str) -> BezierSpline:
             t_prev = p1
             p0 = p2
 
-        else:  # elliptic arc ?!
-            raise ValueError("SVG path parsing error: elliptic arc")
+        elif cmd in 'Aa':  # elliptic arc ?!
+            rx = read_float()
+            ry = read_float()
+            theta = read_float() * math.pi / 180
+            laf = read_float()
+            sf = read_float()
+            p1 = read_point()
+            if cmd.islower():
+                p1 += p0
+            R, t0, t1 = get_elliptic_arc_info(p0, p1, rx, ry, theta, laf, sf)
+            for c in elliptic_arc_to_spline(R, t0, t1):
+                spline.add_curve(c)
+            p0 = p1
+
+        else:
+            assert False
 
         cont_count += 1
 
@@ -213,8 +307,6 @@ def load_svg_shapes(filename: str):
             transform *= parse_css_transform(attributes['transform'])
 
         styles = []
-        if 'style' in attributes:
-            styles += [s.strip() for s in attributes['style'].split(';')]
         if 'class' in attributes:
             classes = ['.'+c.strip() for c in attributes['class'].split()]
             for c in classes:
@@ -225,6 +317,8 @@ def load_svg_shapes(filename: str):
             for c in ids:
                 if c in global_styles:
                     styles += global_styles[c]
+        if 'style' in attributes:
+            styles += [s.strip() for s in attributes['style'].split(';')]
         for style in styles:
             if re.match(r"^fill\s*\:", style):
                 attributes['fill'] = style[style.find(':')+1:]

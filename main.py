@@ -23,13 +23,13 @@ def count_latex_ratio(filename):
 
 
 def main():
-    filename = "test-svg/frosh-main-logo-merged.svg"
-    scale = 10000.0
+    filename = "test-svg/frosh-main-logo-2t3-merged.svg"
+    scale = 20000.0
 
     shapes = merge_shapes.load_svg_to_trig_splines(filename, scale)
     print(len(shapes), "shapes loaded.")
-    shapes = merge_shapes.collect_shapes_greedy(shapes)
-    print(len(shapes), "shapes after merging by color.")
+    # shapes = merge_shapes.collect_shapes_greedy(shapes)
+    # print(len(shapes), "shapes after merging by color.")
     expressions_app = []
     expressions_app = merge_shapes.extract_common_latex(shapes)
     print(len(expressions_app), "common expressions extracted.")

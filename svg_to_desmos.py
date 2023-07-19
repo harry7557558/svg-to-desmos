@@ -67,7 +67,7 @@ def circular_arc_to_spline(a):
     q = -0.5*((b*b/13.5-c/3)*b+d)
     a = q*q + p*p*p
     if a > 0.0:
-        x = (q+a**0.5)**(1/3) + (q-a**0.5)**(1/3) - b/3
+        x = np.cbrt(q+a**0.5) + np.cbrt(q-a**0.5) - b/3
     else:
         x = 2*(q*q-a)**(1/6) * math.cos(math.atan2((-a)**0.5,q)/3) - b/3
     return (

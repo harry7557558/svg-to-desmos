@@ -81,7 +81,9 @@ def circular_arc_to_spline(a):
 def elliptic_arc_to_spline(R: Mat2x3, t0, t1):
     dt = t1 - t0
     n = 1 if abs(dt)<0.5 else int((abs(dt)-0.5)/(0.5*math.pi)) + 1
-    c = circular_arc_to_spline(dt/n)
+    c = circular_arc_to_spline(abs(dt)/n)
+    if dt < 0:
+        c = tuple([Vector2(p.x, -p.y) for p in c])
     res = []
     for i in range(n):
         a = t0 + dt * (i/n)

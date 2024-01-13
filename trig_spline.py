@@ -1,6 +1,6 @@
 # Compress a curve represented by a list of points using FFT
 
-from pygame import Vector2
+from Vector2 import Vector2
 import math
 import numpy as np
 from float_to_str import float_to_str, join_terms

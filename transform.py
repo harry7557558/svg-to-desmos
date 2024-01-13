@@ -1,4 +1,4 @@
-from pygame import Vector2
+from Vector2 import Vector2
 import re
 import math
 

@@ -1,10 +1,9 @@
 from distutils.command.clean import clean
 import math
-from pygame import Vector2
+from Vector2 import Vector2
 import time
 from copy import deepcopy
 
-from sympy import true
 from float_to_str import float_to_str, join_terms, join_curves
 
 

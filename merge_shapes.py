@@ -1,6 +1,6 @@
 # merge shapes with the same color to reduce bytes
 
-from pygame import Vector2
+from Vector2 import Vector2
 from transform import Mat2x3
 from spline import BezierSpline, clean_spline
 from trig_spline import TrigSpline
@@ -10,6 +10,7 @@ import svg_to_desmos
 import time
 from copy import deepcopy
 
+EXPORT_SHAPE_MODE = False
 
 def load_svg_to_trig_splines(filename: str, width: float = None) -> "list[dict]":
     """Load an SVG file to a list of shapes in order
@@ -51,13 +52,21 @@ def load_svg_to_trig_splines(filename: str, width: float = None) -> "list[dict]"
     # calculate AABB
     minp = Vector2(float('inf'))
     maxp = -minp
+    bounds = []
     for polygons in shapes_polygons:
+        minp1 = Vector2(float('inf'))
+        maxp1 = -minp1
         for polygon in polygons:
             for point in polygon:
-                minp.x = min(minp.x, point.x)
-                minp.y = min(minp.y, point.y)
-                maxp.x = max(maxp.x, point.x)
-                maxp.y = max(maxp.y, point.y)
+                minp1.x = min(minp1.x, point.x)
+                minp1.y = min(minp1.y, point.y)
+                maxp1.x = max(maxp1.x, point.x)
+                maxp1.y = max(maxp1.y, point.y)
+        minp.x = min(minp1.x, minp.x)
+        minp.y = min(minp1.y, minp.y)
+        maxp.x = max(maxp1.x, maxp.x)
+        maxp.y = max(maxp1.y, maxp.y)
+        bounds.append((minp1, maxp1))
     if width is None:
         scale = 1.0
     else:
@@ -72,12 +81,15 @@ def load_svg_to_trig_splines(filename: str, width: float = None) -> "list[dict]"
     shapes_filtered = []
     for i in range(len(shapes)):
         shape = shapes[i]
+        pc = (bounds[i][0]+bounds[i][1])/2
+        if not EXPORT_SHAPE_MODE:
+            pc *= 0
 
         # convert to TrigSpline using FFT
         expressions = []
         for polygon in shapes_polygons[i]:
-            for i in range(len(polygon)):
-                polygon[i] = transform * polygon[i]
+            for _ in range(len(polygon)):
+                polygon[_] = transform * (polygon[_]-pc)
             tsp = TrigSpline(polygon)
             tsp.phase_shift_xs1()
             latex = tsp.to_latex(0)

@@ -1,4 +1,4 @@
-from pygame import Vector2
+from Vector2 import Vector2
 import math
 import re
 from copy import deepcopy

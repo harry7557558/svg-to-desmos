@@ -1,4 +1,4 @@
-from pygame import Vector2
+from Vector2 import Vector2
 from spline import Ellipse, BezierCurve, BezierSpline, clean_spline
 from trig_spline import TrigSpline
 from float_to_str import join_curves

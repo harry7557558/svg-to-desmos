@@ -23,8 +23,8 @@ def count_latex_ratio(filename):
 
 
 def main():
-    filename = "test-svg/frosh-main-logo-2t3-merged.svg"
-    scale = 20000.0
+    filename = "test-svg/hermit_crab.svg"
+    scale = 2000.0
 
     shapes = merge_shapes.load_svg_to_trig_splines(filename, scale)
     print(len(shapes), "shapes loaded.")

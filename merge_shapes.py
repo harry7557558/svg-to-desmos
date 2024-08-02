@@ -91,6 +91,10 @@ def load_svg_to_trig_splines(filename: str, width: float = None) -> "list[dict]"
             for _ in range(len(polygon)):
                 polygon[_] = transform * (polygon[_]-pc)
             tsp = TrigSpline(polygon)
+            mag = tsp.get_magnitude()
+            area = abs(tsp.get_area_approx(64))
+            if mag < 3.0 or (mag < 20.0 and area < 20.0):
+                continue
             tsp.phase_shift_xs1()
             latex = tsp.to_latex(0)
             if latex == "":
@@ -387,7 +391,7 @@ def split_large_shapes(shapes: "list[dict]") -> "list[dict]":
         for expr in shape['desmos']:
             expr_list.append(expr)
             len_count += len(expr['latex'])
-            if len_count > 10000:
+            if len_count > 2000:
                 new_shapes.append({
                     'fill': shape['fill'],
                     'desmos': expr_list

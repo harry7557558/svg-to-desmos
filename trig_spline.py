@@ -79,6 +79,15 @@ class TrigSpline:
         y_sum = np.sum(self._y_cos[1:]**2) + np.sum(self._y_sin[1:]**2)
         return math.sqrt(0.5*(x_sum+y_sum))
 
+    def get_area_approx(self, n: int) -> float:
+        """Return the signed area based on coutour integral"""
+        x, y = self.evaluate_n(n, True)
+        if len(x) < n:
+            return 0.0
+        idx = np.arange(n)-1
+        a = 0.5 * (x[idx] * y - y[idx] * x)
+        return a.sum()
+
     def count_nonzero(self, epsilon: float = 1e-8) -> int:
         """Count the number of sinusoidal basis with non-zero amplitudes
         Additional info:

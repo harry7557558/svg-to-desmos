@@ -34,9 +34,10 @@ def main():
     expressions_app = merge_shapes.extract_common_latex(shapes)
     print(len(expressions_app), "common expressions extracted.")
     expressions = svg_to_desmos.shapes_to_desmos(shapes, expressions_app)
+    open('desmos.txt', 'w').write(svg_to_desmos.expressions_to_txt(expressions))
     expressions = json.dumps(expressions, separators=(',', ':'))
     expressions = f"var s=Calc.getState();s['expressions']['list']={expressions};Calc.setState(s);"
-    open(".desmos", 'w').write(expressions)
+    open("desmos.js", 'w').write(expressions)
     print(len(expressions), "bytes")
 
 

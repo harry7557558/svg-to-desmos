@@ -22,6 +22,13 @@ Indirectly based on a school project from a grade 12 CS class.
 
 The `__name__ == "__main__"` is in `svg_to_desmos.py`.
 
+### How to use it
+
+ - Put the path to your svg file at the bottom of `svg_to_desmos.py` or at the top of the main function in `main.py`, then run the python.
+ - Go to [Desmos](https://www.desmos.com/calculator).
+ - Open the browser console (on chrome you right click and hit inspect element), and paste in the contents of desmos.js OR
+ - Go to desmos.txt and paste the expressions in one by one if you dont have access to the console (on school computers for example). Make sure to manually adjust the settings and apply the colors, as this option wont do it automatically.
+
 ## Gallery
 
 [A hermit crab I created for a school project in my grade 10 year](https://www.desmos.com/calculator/cjs9zhmfdq) - 16,978 bytes • 32 expressions

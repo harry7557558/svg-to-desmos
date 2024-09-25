@@ -481,23 +481,92 @@ def shapes_to_desmos(shapes: "list[dict]", expressions_app: "list[dict]" = []) -
     return expressions_list
 
 
+def expressions_to_txt(expressions):
+    colors = []
+    retStr = ""
+    singlePaste = ""
+    for expression in expressions:
+        if "hidden" in expression.keys() and expression["hidden"] == True:
+            isHidden = True
+        else:
+            isHidden = False
+        attributes = []
+
+        retStr += expression["latex"] + "\n"
+        singlePaste += expression["latex"] + "\n"
+        if not isHidden:
+            if expression["color"] in colors:
+                attributes.append(f'color: C{colors.index(expression["color"])}')
+            else:
+                colors.append(expression["color"])
+                attributes.append(f'color: C{len(colors) - 1}')
+
+            if "fill" in expression.keys():
+                attributes.append(f'fill: {expression["fill"]}')
+            if "lines" in expression.keys():
+                attributes.append(f'lines: {expression["lines"]}')
+            if "fillOpacity" in expression.keys():
+                attributes.append(f'opacity: {expression["fillOpacity"]}')
+
+        else:
+            attributes.append('hidden: True')
+
+        if "parametricDomain" in expression.keys():
+            pdmin = expression["parametricDomain"]["min"]
+            pdmax = expression["parametricDomain"]["max"]
+            attributes.append(f'{pdmin + " <= " if pdmin != "" else ""}t{" <= " + pdmax if pdmax != "" else ""}')
+
+        if len(attributes) > 0:
+            retStr += "\"(" + (", ".join(attributes)) +")\"\n"
+        retStr += "\n"
+
+    for i, j in enumerate(colors):
+        colStr = j[1:] if j.startswith("#") else j
+
+        if len(colStr) == 3:
+            rgbList = [
+                int(colStr[0]*2, 16),
+                int(colStr[1]*2, 16),
+                int(colStr[2]*2, 16)
+            ]
+
+        elif len(colStr) == 6:
+            rgbList = [
+                int(colStr[0:2], 16),
+                int(colStr[2:4], 16),
+                int(colStr[4:6], 16)
+            ]
+
+        retStr += f"C_{i}=rgb({rgbList[0]},{rgbList[1]},{rgbList[2]})\n\n"
+        singlePaste += f"C_{i}=rgb({rgbList[0]},{rgbList[1]},{rgbList[2]})\n"
+
+    retStr += f'\nsingle paste:\n\n{singlePaste}'
+
+    return retStr
+
 if __name__ == "__main__":
 
     def one_svg_to_desmos_merge(filepath, scale: float):
         shapes = merge_shapes.load_svg_to_trig_splines(
             filepath, scale)
         print(len(shapes), "shapes loaded.")
+
         shapes = merge_shapes.collect_shapes_greedy(shapes)
         shapes = merge_shapes.split_large_shapes(shapes)
         print("Merged:", len(shapes), "expressions.")
+
         commons = []
         commons = merge_shapes.extract_common_latex(shapes)
         print(len(commons), "common expressions extracted.")
+
         expressions = shapes_to_desmos(shapes, commons)
-        expressions = json.dumps(expressions, separators=(',', ':'))
-        expressions = f"var s=Calc.getState();s['expressions']['list']={expressions};Calc.setState(s);"
+        open("desmos.txt", 'w').write(expressions_to_txt(expressions))
+
+        expressions = json.dumps(expressions, separators=(',', ':'), indent = 4)
+        expressions = f"var s=Calc.getState();\ns['expressions']['list'] = {expressions};\nCalc.setState(s);"
         # print(expressions)
-        open(".desmos", 'w').write(expressions)
+
+        open("desmos.js", 'w').write(expressions)
         print(len(expressions), "chars")
 
     # filename, width = "test-svg/uoft-logo.svg", 2000
